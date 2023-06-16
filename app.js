@@ -1,7 +1,20 @@
 const express = require("express");
 
+//
+
+// Importe mongoose
+const mongoose = require("mongoose");
+
 // Create express application
 const app = express();
+
+mongoose
+  .connect(
+    "mongodb+srv://gkzk:Whothef*ck15that@project0.huvo8yv.mongodb.net/test?retryWrites=true&w=majority",
+    { useNewUrlParser: true, useUnifiedTopology: true }
+  )
+  .then(() => console.log("Connexion à MongoDB réussie !"))
+  .catch(() => console.log("Connexion à MongoDB échouée !"));
 
 //Middleware that intercept all request with a content type "json" and make it available in the req object in req.body
 app.use(express.json());
