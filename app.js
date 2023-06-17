@@ -1,9 +1,9 @@
 const express = require("express");
-
-//
-
 // Importe mongoose
 const mongoose = require("mongoose");
+// Import models
+const Book = require("./models/Book");
+const User = require("./models/User");
 
 // Create express application
 const app = express();
@@ -36,60 +36,60 @@ app.use((req, res, next) => {
 
 // [POST] API AUTH SIGNUP
 app.post("/api/auth/signup", (req, res, next) => {
-  const user = [
-    {
-      email: "Adresse email de l'user unique",
-      password: "Mot de passe hashé de l'utilisateur",
-    },
-  ];
-  console.log("Signup");
-  res.status(200).json(user);
+  const newUser = new User({
+    email: req.body.email,
+    password: req.body.password,
+  });
+
+  console.log(newUser);
+
+  newUser
+    .save()
+    .then(() => res.status(201).json({ message: "Utilisateur enregistré" }))
+    .catch(() => res.status(400).json({ error }));
 });
 
 // [POST] API AUTH LOGIN
 app.post("/api/auth/login", (req, res, next) => {
-  const userAuth = [
-    {
-      id: "Id utilisateur depuis la base de données si match",
-      token: "token web JSON signé contenant l'ID de l'utilisateur",
-    },
-  ];
-  res.status(200).json(userAuth);
+  User.findOne({ email: req.body.email })
+    .then((user) => {
+      console.log(user.password);
+      if (req.body.password == user.password) {
+        res.status(200).json({ token: "fkjehfeisbesikfb", userId: user._id });
+      } else {
+        res
+          .status(400)
+          .json({ error: "Mot de passe ou identifiant incorrect" });
+      }
+    })
+    .catch(() => res.status(400).json({ error: "error" }));
 });
 
 // [GET] API BOOKS
 app.get("/api/books", (req, res, next) => {
-  const books = [
-    {
-      userId: "identifiant MongoDB unique de l'user qui a créé le livre",
-      title: "Titre du livre",
-      author: "Auteur du livre",
-      imageUrl:
-        "https://cdn.pixabay.com/photo/2019/06/11/18/56/camera-4267692_1280.jpg",
-      year: 4900,
-      genre: "Genre du livre",
-      ratings: [
-        {
-          userId: "Identifiant MongoDB unique de l'user qui a noté le livre",
-          grade: 5,
-        },
-      ],
-      averageRating: 2,
-    },
-  ];
-  res.status(200).json(books);
+  Book.find()
+    .then((books) => res.status(200).json(books))
+    .catch(() => res.status(400).json({ error }));
 });
 
 // [POST] API BOOKS
 app.post("/api/books", (req, res, next) => {
-  console.log(req.body);
-  res.status(201).json({ message: "Objet ajouté" });
+  delete req.body.userId;
+  const book = new Book({
+    ...req.body,
+  });
+
+  book
+    .save()
+    .then(() => res.status(201).json({ message: "Livre enregistré" }))
+    .catch(() => res.status(400).json({ error }));
 });
 
 // [GET] API BOOKS ID
 app.get("/api/books/:id", (req, res, next) => {
-  const book = "Renvoie le livre avec l'id fourni";
-  res.status(200).json(book);
+  Book.findOne({ _id: req.params.id })
+    .then((book) => res.status(200).json(book))
+    .catch(() => res.status(400).json({ error: "error" }));
 });
 
 // [GET] API BOOKS BESTRATING
