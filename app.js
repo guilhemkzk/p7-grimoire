@@ -1,6 +1,8 @@
 const express = require("express");
-// Importe mongoose
+// Import mongoose
 const mongoose = require("mongoose");
+// Import bcrypt
+const bcrypt = require("bcrypt");
 // Import models
 const Book = require("./models/Book");
 const User = require("./models/User");
@@ -36,31 +38,37 @@ app.use((req, res, next) => {
 
 // [POST] API AUTH SIGNUP
 app.post("/api/auth/signup", (req, res, next) => {
-  const newUser = new User({
-    email: req.body.email,
-    password: req.body.password,
-  });
+  //Check if the email already exists
 
-  console.log(newUser);
-
-  newUser
-    .save()
-    .then(() => res.status(201).json({ message: "Utilisateur enregistré" }))
-    .catch(() => res.status(400).json({ error }));
+  const saltRounds = 10;
+  bcrypt
+    .hash(req.body.password, saltRounds)
+    .then((hash) => {
+      const newUser = new User({
+        email: req.body.email,
+        password: hash,
+      });
+      newUser
+        .save()
+        .then(() => res.status(201).json({ message: "Utilisateur enregistré" }))
+        .catch(() => res.status(400).json({ error: "error" }));
+    })
+    .catch((err) => console.error(err.message));
 });
 
 // [POST] API AUTH LOGIN
 app.post("/api/auth/login", (req, res, next) => {
   User.findOne({ email: req.body.email })
     .then((user) => {
-      console.log(user.password);
-      if (req.body.password == user.password) {
-        res.status(200).json({ token: "fkjehfeisbesikfb", userId: user._id });
-      } else {
-        res
-          .status(400)
-          .json({ error: "Mot de passe ou identifiant incorrect" });
-      }
+      bcrypt.compare(req.body.password, user.password, function (err, resp) {
+        if (resp == true) {
+          res.status(200).json({ token: "fkjehfeisbesikfb", userId: user._id });
+        } else {
+          res
+            .status(400)
+            .json({ error: "Mot de passe ou identifiant incorrect" });
+        }
+      });
     })
     .catch(() => res.status(400).json({ error: "error" }));
 });
@@ -69,12 +77,12 @@ app.post("/api/auth/login", (req, res, next) => {
 app.get("/api/books", (req, res, next) => {
   Book.find()
     .then((books) => res.status(200).json(books))
-    .catch(() => res.status(400).json({ error }));
+    .catch(() => res.status(400).json({ error: "error" }));
 });
 
 // [POST] API BOOKS
 app.post("/api/books", (req, res, next) => {
-  delete req.body.userId;
+  console.log(req);
   const book = new Book({
     ...req.body,
   });
@@ -82,7 +90,7 @@ app.post("/api/books", (req, res, next) => {
   book
     .save()
     .then(() => res.status(201).json({ message: "Livre enregistré" }))
-    .catch(() => res.status(400).json({ error }));
+    .catch(() => res.status(400).json({ error: "error" }));
 });
 
 // [GET] API BOOKS ID
