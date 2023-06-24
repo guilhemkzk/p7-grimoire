@@ -1,4 +1,6 @@
 const express = require("express");
+// Import bodyparser
+var bodyParser = require("body-parser");
 // Import mongoose
 const mongoose = require("mongoose");
 // Import bcrypt
@@ -15,7 +17,7 @@ const User = require("./models/User");
 
 // Create express application
 const app = express();
-const upload = multer();
+const upload = multer({ dest: "images/" });
 
 // Allow all request's origins
 var cors = require("cors");
@@ -25,14 +27,6 @@ dotenv.config();
 
 app.use(cors()); // Use this after the variable declaration
 
-mongoose
-  .connect(
-    "mongodb+srv://gkzk:Whothef*ck15that@project0.huvo8yv.mongodb.net/test?retryWrites=true&w=majority",
-    { useNewUrlParser: true, useUnifiedTopology: true }
-  )
-  .then(() => console.log("Connexion à MongoDB réussie !"))
-  .catch(() => console.log("Connexion à MongoDB échouée !"));
-
 //Middleware that intercept all request with a content type "json" and make it available in the req object in req.body
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -41,15 +35,20 @@ app.use(express.urlencoded({ extended: true }));
 app.use(upload.array());
 app.use(express.static("public"));
 
-// // parse application/x-www-form-urlencoded
-// app.use(
-//   bodyParser.urlencoded({
-//     extended: true,
-//   })
-// );
+// for parsing application/json
+app.use(bodyParser.json());
 
-// // parse application/json
-// app.use(bodyParser.json());
+// for parsing application/xwww-
+app.use(bodyParser.urlencoded({ extended: true }));
+//form-urlencoded
+
+mongoose
+  .connect(
+    "mongodb+srv://gkzk:Whothef*ck15that@project0.huvo8yv.mongodb.net/test?retryWrites=true&w=majority",
+    { useNewUrlParser: true, useUnifiedTopology: true }
+  )
+  .then(() => console.log("Connexion à MongoDB réussie !"))
+  .catch(() => console.log("Connexion à MongoDB échouée !"));
 
 // -------------------------------- Middlewares ----------------------------------
 
@@ -63,12 +62,6 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
   next();
-});
-
-// Request that send the JWT token in response
-app.post("/user/generateToken", (req, res) => {
-  // Validate User Here
-  // Then generate JWT Token
 });
 
 // ---------------------------- Endpoints and routes  -----------------------------
@@ -109,13 +102,11 @@ app.post("/api/auth/login", (req, res, next) => {
     .then((user) => {
       bcrypt.compare(req.body.password, user.password, function (err, resp) {
         if (resp == true) {
-          let jwtSecretKey = process.env.JWT_SECRET_KEY;
-          let data = {
-            time: Date(),
-            userId: 12,
-          };
-
-          const token = jwt.sign(data, jwtSecretKey);
+          const token = jwt.sign(
+            { userId: user._id },
+            process.env.JWT_SECRET_KEY,
+            { expiresIn: "24h" }
+          );
           res.status(200).json({ token: token, userId: user._id });
         } else {
           res
@@ -127,17 +118,10 @@ app.post("/api/auth/login", (req, res, next) => {
     .catch(() => res.status(400).json({ error: "error" }));
 });
 
-// [GET] API BOOKS
-app.get("/api/books", (req, res, next) => {
-  Book.find()
-    .then((books) => res.status(200).json(books))
-    .catch(() => res.status(400).json({ error: "error" }));
-});
-
 // [POST] API BOOKS
-app.post("/api/books", upload.single("image"), (req, res, next) => {
+app.post("/api/books", (req, res, next) => {
   console.log("Body: ", req.body);
-  console.log("File: ", req.file);
+  console.log("File: ", req.files);
 
   // const book = new Book({
   //   ...req.body,
@@ -148,6 +132,20 @@ app.post("/api/books", upload.single("image"), (req, res, next) => {
   //   .save()
   //   .then(() => res.status(201).json({ message: "Livre enregistré" }))
   //   .catch(() => res.status(400).json({ error: "error" }));
+});
+
+// [GET] API BOOKS
+app.get("/api/books", (req, res, next) => {
+  Book.find()
+    .then((books) => res.status(200).json(books))
+    .catch(() => res.status(400).json({ error: "error" }));
+});
+
+app.post("/api/stuff", (req, res, next) => {
+  console.log(req.body);
+  res.status(201).json({
+    message: "Objet créé !",
+  });
 });
 
 // [GET] API BOOKS ID
