@@ -1,19 +1,25 @@
 const Book = require("../models/Book");
+const fs = require("fs");
 
 exports.createBook = (req, res, next) => {
-  console.log("Body: ", req.body);
-  console.log("File: ", req.files);
-
-  // const book = new Book({
-  //   ...req.body,
-  // });
-
-  res.send("Ok");
-
-  // book
-  //   .save()
-  //   .then(() => res.status(201).json({ message: "Livre enregistré" }))
-  //   .catch(() => res.status(400).json({ error: "error" }));
+  const bookObject = JSON.parse(req.body.book);
+  delete bookObject._id;
+  delete bookObject.userId;
+  const book = new Book({
+    ...bookObject,
+    userId: req.auth.userId,
+    imageUrl: `${req.protocol}://${req.get("host")}/images/${
+      req.file.filename
+    }`,
+  });
+  book
+    .save()
+    .then(() => {
+      res.status(201).json({ message: "Livre enregistré" });
+    })
+    .catch((error) => {
+      res.status(400).json({ error });
+    });
 };
 
 exports.getAllBooks = (req, res, next) => {
@@ -37,11 +43,37 @@ exports.bestRatings = (req, res, next) => {
 };
 
 exports.updateBook = (req, res, next) => {
-  res.send("Ok");
+  const bookOject = req.file
+    ? {
+        ...JSON.parse(req.body.book),
+        imageUrl: `${req.protocol}://${req.get("host")}/images/${
+          req.file.filename
+        }`,
+      }
+    : { ...req.body };
+
+  delete bookOject.userId;
+
+  Book.findOne({ _id: req.params.id })
+    .then((book) => {
+      if (book.userId != req.auth.userId) {
+        res.status(401).json({ message: "Non autorisé" });
+      } else {
+        Book.updateOne(
+          { _id: req.params.id },
+          { ...bookOject, _id: req.params.id }
+        )
+          .then(() => res.status(200).json({ message: "Livre mis à jour" }))
+          .catch((error) => res.status(401).json({ error }));
+      }
+    })
+    .catch((error) => res.status(400).json({ error }));
 };
 
 exports.deleteBook = (req, res, next) => {
-  res.send("Ok");
+  Book.deleteOne({ _id: req.params.id })
+    .then(() => res.status(200).json({ message: "Livre supprimé !" }))
+    .catch((error) => res.status(400).json({ error }));
 };
 
 exports.rateBook = (req, res, next) => {
