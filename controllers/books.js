@@ -31,15 +31,15 @@ exports.getAllBooks = (req, res, next) => {
 exports.getOneBook = (req, res, next) => {
   Book.findOne({ _id: req.params.id })
     .then((book) => res.status(200).json(book))
-    .catch(() => res.status(400).json({ error: "error" }));
+    .catch(() => res.status(500).json({ error: "error" }));
 };
 
 exports.bestRatings = (req, res, next) => {
-  const books = [
-    "Array des 3 livres de la bdd ayant la meilleure note moyenne",
-  ];
-
-  res.status(200).json(books);
+  Book.find()
+    .sort({ averageRating: -1 })
+    .limit(3)
+    .then((bestRatingBooks) => res.status(200).json(bestRatingBooks))
+    .catch(() => res.status(500).json({ error: "error" }));
 };
 
 exports.updateBook = (req, res, next) => {

@@ -9,10 +9,10 @@ const bookCtrl = require("../controllers/books");
 router.post("/", auth, multer, bookCtrl.createBook);
 // [GET] API BOOKS
 router.get("/", bookCtrl.getAllBooks);
+// [GET] API BOOKS BESTRATING
+router.get("/bestrating", bookCtrl.bestRatings);
 // [GET] API BOOKS ID
 router.get("/:id", bookCtrl.getOneBook);
-// [GET] API BOOKS BESTRATING
-router.get("/bestrating", auth, bookCtrl.bestRatings);
 // [PUT] API BOOKS ID
 router.put("/:id", auth, multer, bookCtrl.updateBook);
 // [DELETE] API BOOKS ID
