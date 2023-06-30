@@ -11,13 +11,13 @@ router.post("/", auth, multer, bookCtrl.createBook);
 router.get("/", bookCtrl.getAllBooks);
 // [GET] API BOOKS BESTRATING
 router.get("/bestrating", bookCtrl.bestRatings);
+// [POST] API BOOKS ID RATING
+router.post("/:id/rating", auth, bookCtrl.rateBook);
 // [GET] API BOOKS ID
 router.get("/:id", bookCtrl.getOneBook);
 // [PUT] API BOOKS ID
 router.put("/:id", auth, multer, bookCtrl.updateBook);
 // [DELETE] API BOOKS ID
 router.delete("/:id", auth, bookCtrl.deleteBook);
-// [POST] API BOOKS ID RATING
-router.post("/:id/rating", auth, bookCtrl.rateBook);
 
 module.exports = router;

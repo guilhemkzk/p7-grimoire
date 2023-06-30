@@ -1,3 +1,4 @@
+const { userInfo } = require("os");
 const Book = require("../models/Book");
 const fs = require("fs");
 
@@ -77,5 +78,43 @@ exports.deleteBook = (req, res, next) => {
 };
 
 exports.rateBook = (req, res, next) => {
-  res.send("Ok");
+  const currentUser = req.body.userId;
+  const currentBook = req.params.id;
+  const newGrade = req.body.rating;
+
+  // Find the book
+  Book.findOne({ _id: currentBook })
+    .then((book) => {
+      if (book.ratings.some((e) => e.userId == currentUser)) {
+        //// Book.updateOne({"ratings" : {"$elemMatch" : {"userId": {"$eq": currentUser}}}},
+        //// {"$set" : {"$ratings.$.grade" : req.body.rating}});
+        //     Book.ratings.updateOne(
+        //       { userId: { $eq: currentUser } },
+        //       { $set: { $grade: newGrade } }
+        //     );
+        console.log("L'user existe");
+      } else {
+        console.log("L'user n'existe pas");
+        Book.ratings.insertOne({ userId: currentUser, grade: newGrade });
+      }
+
+      //   // Recalculate the average rating
+      //   let newAverageRating = 0;
+
+      //   book.ratings.forEach((rating) => {
+      //     newAverageRating = newAverageRating + rating.grade;
+      //   });
+      //   newAverageRating = Math.round(newAverageRating / book.ratings.length);
+
+      //   //Update average rating
+      //   Book.updateOne({ averageRating: newAverageRating });
+
+      //   //Send the response as the new updated book
+      //   Book.findOne({ _id: currentBook })
+      //     .then((book) => res.status(200).json(book))
+      //     .catch(() => res.status(500).json({ error: "error" }));
+      // })
+    })
+
+    .catch(() => res.status(500).json({ error: "error" }));
 };
