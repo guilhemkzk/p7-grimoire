@@ -82,39 +82,40 @@ exports.rateBook = (req, res, next) => {
   const currentBook = req.params.id;
   const newGrade = req.body.rating;
 
-  // Find the book
-  Book.findOne({ _id: currentBook })
-    .then((book) => {
-      if (book.ratings.some((e) => e.userId == currentUser)) {
-        //// Book.updateOne({"ratings" : {"$elemMatch" : {"userId": {"$eq": currentUser}}}},
-        //// {"$set" : {"$ratings.$.grade" : req.body.rating}});
-        //     Book.ratings.updateOne(
-        //       { userId: { $eq: currentUser } },
-        //       { $set: { $grade: newGrade } }
-        //     );
-        console.log("L'user existe");
-      } else {
-        console.log("L'user n'existe pas");
-        Book.ratings.insertOne({ userId: currentUser, grade: newGrade });
-      }
+  // Update the book with the new rating
+  Book.updateOne(
+    { _id: currentBook },
+    {
+      $push: { ratings: { userId: currentUser, grade: newGrade } },
+    }
+  )
+    .then(() => {
+      //Get the updated book
+      Book.findOne({ _id: currentBook })
+        .then((book) => {
+          // Recalculate the average rating
+          let newAverageRating = 0;
+          book.ratings.forEach((rating) => {
+            newAverageRating = newAverageRating + rating.grade;
+          });
+          newAverageRating =
+            Math.round((newAverageRating / book.ratings.length) * 10) / 10;
 
-      //   // Recalculate the average rating
-      //   let newAverageRating = 0;
+          //Update average rating
+          Book.updateOne(
+            { _id: currentBook },
+            { $set: { averageRating: newAverageRating } }
+          )
+            .then(console.log("Ok"))
+            .catch((error) => res.status(500).json({ error }));
 
-      //   book.ratings.forEach((rating) => {
-      //     newAverageRating = newAverageRating + rating.grade;
-      //   });
-      //   newAverageRating = Math.round(newAverageRating / book.ratings.length);
-
-      //   //Update average rating
-      //   Book.updateOne({ averageRating: newAverageRating });
-
-      //   //Send the response as the new updated book
-      //   Book.findOne({ _id: currentBook })
-      //     .then((book) => res.status(200).json(book))
-      //     .catch(() => res.status(500).json({ error: "error" }));
-      // })
+          //Send the response as the new updated book
+          Book.findOne({ _id: currentBook })
+            .then((book) => res.status(200).json(book))
+            .catch((error) => res.status(500).json({ error }));
+        })
+        .catch((error) => res.status(500).json({ error }));
     })
 
-    .catch(() => res.status(500).json({ error: "error" }));
+    .catch((error) => res.status(500).json({ error }));
 };
