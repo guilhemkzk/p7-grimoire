@@ -1,18 +1,40 @@
-const { userInfo } = require("os");
 const Book = require("../models/Book");
+const sharp = require("sharp");
 const fs = require("fs");
+sharp.cache(false);
 
 exports.createBook = (req, res, next) => {
+  fs.access("images/", (err) => {
+    if (err) {
+      fs.mkdirSync("images/");
+    }
+  });
+
+  sharp(req.file.path)
+    .resize({ width: 412, height: 520, fit: sharp.fit.contain })
+    .toFormat("jpeg", { mozjpeg: true })
+    .toFile("images/resized_" + req.file.filename, (err, info) => {
+      if (err) {
+        // Handle the error
+        return console.log(err);
+      }
+    });
+
   const bookObject = JSON.parse(req.body.book);
   delete bookObject._id;
   delete bookObject.userId;
   const book = new Book({
     ...bookObject,
     userId: req.auth.userId,
-    imageUrl: `${req.protocol}://${req.get("host")}/images/${
+    imageUrl: `${req.protocol}://${req.get("host")}/images/resized_${
       req.file.filename
     }`,
   });
+
+  // fs.unlink("images/" + req.file.filename, (err) => {
+  //   if (err) console.log(err);
+  // });
+
   book
     .save()
     .then(() => {
@@ -44,10 +66,20 @@ exports.bestRatings = (req, res, next) => {
 };
 
 exports.updateBook = (req, res, next) => {
+  sharp(req.file.path)
+    .resize({ width: 412, height: 520, fit: sharp.fit.contain })
+    .toFormat("jpeg", { mozjpeg: true })
+    .toFile("images/resized_" + req.file.filename, (err, info) => {
+      if (err) {
+        // Handle the error
+        return console.log(err);
+      }
+    });
+
   const bookOject = req.file
     ? {
         ...JSON.parse(req.body.book),
-        imageUrl: `${req.protocol}://${req.get("host")}/images/${
+        imageUrl: `${req.protocol}://${req.get("host")}/images/resized_${
           req.file.filename
         }`,
       }
@@ -78,39 +110,60 @@ exports.deleteBook = (req, res, next) => {
 };
 
 exports.rateBook = (req, res, next) => {
-  const currentUser = req.body.userId;
-  const currentBook = req.params.id;
+  const currentUserId = req.body.userId;
+  const currentBookId = req.params.id;
   const newGrade = req.body.rating;
+
+  // IF GUARDIANS
+  Book.findOne({ _id: currentBookId })
+    .then((book) => {
+      // IF GUARDIAN : the user as created the book
+      if (book.userId === currentUserId) {
+        res.status(400).json({
+          message:
+            "Un problème est survenu, veuillez contacter l'administrateur",
+        });
+      }
+      // IF GUARDIAN : the user already voted for the book
+      book.ratings.forEach((rating) => {
+        if (rating.userId === currentUserId) {
+          res.status(400).json({
+            message:
+              "Un problème est survenu, veuillez contacter l'administrateur",
+          });
+        }
+      });
+    })
+    .catch((error) => res.status(500).json({ error }));
 
   // Update the book with the new rating
   Book.updateOne(
-    { _id: currentBook },
+    { _id: currentBookId },
     {
-      $push: { ratings: { userId: currentUser, grade: newGrade } },
+      $push: { ratings: { userId: currentUserId, grade: newGrade } },
     }
   )
     .then(() => {
       //Get the updated book
-      Book.findOne({ _id: currentBook })
+      Book.findOne({ _id: currentBookId })
         .then((book) => {
           // Recalculate the average rating
-          let newAverageRating = 0;
-          book.ratings.forEach((rating) => {
-            newAverageRating = newAverageRating + rating.grade;
-          });
-          newAverageRating =
-            Math.round((newAverageRating / book.ratings.length) * 10) / 10;
+          let newAverage =
+            (book.averageRating * (book.ratings.length - 1) + newGrade) /
+            book.ratings.length;
+
+          newAverage = Math.round(newAverage * 10) / 10;
 
           //Update average rating
           Book.updateOne(
-            { _id: currentBook },
-            { $set: { averageRating: newAverageRating } }
+            { _id: currentBookId },
+            { $set: { averageRating: newAverage } }
           )
-            .then(console.log("Ok"))
+            .then(console.log("Book ratings updated"))
             .catch((error) => res.status(500).json({ error }));
 
           //Send the response as the new updated book
-          Book.findOne({ _id: currentBook })
+          Book.findOne({ _id: currentBookId })
             .then((book) => res.status(200).json(book))
             .catch((error) => res.status(500).json({ error }));
         })

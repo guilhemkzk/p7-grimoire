@@ -29,12 +29,10 @@ exports.signup = (req, res, next) => {
   }
 
   if (!ValidatePassword(req.body.password)) {
-    res
-      .status(400)
-      .json({
-        message:
-          "Le mot de passe doit faire au moins 8 caractères et comporter au moins : 1 minuscule, 1 majuscule, 1 chiffre et 1 caractère spécial",
-      });
+    res.status(400).json({
+      message:
+        "Le mot de passe doit faire au moins 8 caractères et comporter au moins : 1 minuscule, 1 majuscule, 1 chiffre et 1 caractère spécial",
+    });
     return;
   }
 
@@ -72,7 +70,7 @@ exports.login = (req, res, next) => {
           const token = jwt.sign(
             { userId: user._id },
             process.env.JWT_SECRET_KEY,
-            { expiresIn: "12h" }
+            { expiresIn: "2h" } //1h
           );
           res.status(200).json({
             userId: user._id,
