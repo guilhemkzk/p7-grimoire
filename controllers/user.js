@@ -2,34 +2,20 @@ const User = require("../models/User");
 
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-
-function ValidateEmail(mail) {
-  const regexMail = new RegExp("[a-z0-9]+@[a-z]+.[a-z]{2,3}");
-
-  if (regexMail.test(mail)) {
-    return true;
-  }
-  return false;
-}
-
-function ValidatePassword(password) {
-  const regexPassword = new RegExp(
-    "(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])(?=.{8,})"
-  );
-  if (regexPassword.test(password)) {
-    return true;
-  }
-  return false;
-}
+const validator = require("validator");
 
 exports.signup = (req, res, next) => {
-  if (ValidateEmail(!req.body.email)) {
-    res.status(400).json({ message: "Format email invalide" });
+  if (User.findOne({ email: req.body.email })) {
+    return res.status(401).json({ message: "Utilisateur déjà enregistré" });
+  }
+
+  if (!validator.isEmail(req.body.email)) {
+    res.status(401).json({ message: "Format email invalide" });
     return;
   }
 
-  if (!ValidatePassword(req.body.password)) {
-    res.status(400).json({
+  if (!validator.isStrongPassword(req.body.password)) {
+    res.status(401).json({
       message:
         "Le mot de passe doit faire au moins 8 caractères et comporter au moins : 1 minuscule, 1 majuscule, 1 chiffre et 1 caractère spécial",
     });

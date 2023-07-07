@@ -10,6 +10,12 @@ exports.createBook = (req, res, next) => {
     }
   });
 
+  if (req.file.size > 500000) {
+    return res
+      .status(401)
+      .json({ message: "L'image ne doit pas dépasser 500 Ko" });
+  }
+
   sharp(req.file.path)
     .resize({ width: 412, height: 520, fit: sharp.fit.contain })
     .toFormat("jpeg", { mozjpeg: true })
@@ -30,10 +36,6 @@ exports.createBook = (req, res, next) => {
       req.file.filename
     }`,
   });
-
-  // fs.unlink("images/" + req.file.filename, (err) => {
-  //   if (err) console.log(err);
-  // });
 
   book
     .save()
@@ -66,6 +68,12 @@ exports.bestRatings = (req, res, next) => {
 };
 
 exports.updateBook = (req, res, next) => {
+  if (req.file.size > 500000) {
+    return res
+      .status(401)
+      .json({ message: "L'image ne doit pas dépasser 500 Ko" });
+  }
+
   sharp(req.file.path)
     .resize({ width: 412, height: 520, fit: sharp.fit.contain })
     .toFormat("jpeg", { mozjpeg: true })
@@ -114,22 +122,19 @@ exports.rateBook = (req, res, next) => {
   const currentBookId = req.params.id;
   const newGrade = req.body.rating;
 
-  // IF GUARDIANS
   Book.findOne({ _id: currentBookId })
     .then((book) => {
-      // IF GUARDIAN : the user as created the book
+      // Check if the user has created the book
       if (book.userId === currentUserId) {
         res.status(400).json({
-          message:
-            "Un problème est survenu, veuillez contacter l'administrateur",
+          message: "Vous ne pouvez pas effetuer cette action.",
         });
       }
-      // IF GUARDIAN : the user already voted for the book
+      // Check if the user has already voted for the book
       book.ratings.forEach((rating) => {
         if (rating.userId === currentUserId) {
           res.status(400).json({
-            message:
-              "Un problème est survenu, veuillez contacter l'administrateur",
+            message: "Vous ne pouvez pas effetuer cette action.",
           });
         }
       });
