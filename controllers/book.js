@@ -10,18 +10,17 @@ exports.createBook = (req, res, next) => {
     }
   });
 
-  if (req.file.size > 500000) {
-    return res
-      .status(401)
-      .json({ message: "L'image ne doit pas dépasser 500 Ko" });
-  }
+  // if (req.file.size > 500000) {
+  //   return res
+  //     .status(401)
+  //     .json({ message: "L'image ne doit pas dépasser 500 Ko" });
+  // }
 
   sharp(req.file.path)
     .resize({ width: 412, height: 520, fit: sharp.fit.contain })
     .toFormat("jpeg", { mozjpeg: true })
     .toFile("images/resized_" + req.file.filename, (err, info) => {
       if (err) {
-        // Handle the error
         return console.log(err);
       }
     });
@@ -43,20 +42,20 @@ exports.createBook = (req, res, next) => {
       res.status(201).json({ message: "Livre enregistré" });
     })
     .catch((error) => {
-      res.status(400).json({ error });
+      res.status(400).json({ message: error });
     });
 };
 
 exports.getAllBooks = (req, res, next) => {
   Book.find()
     .then((books) => res.status(200).json(books))
-    .catch(() => res.status(400).json({ error: "error" }));
+    .catch((error) => res.status(400).json({ message: error }));
 };
 
 exports.getOneBook = (req, res, next) => {
   Book.findOne({ _id: req.params.id })
     .then((book) => res.status(200).json(book))
-    .catch(() => res.status(500).json({ error: "error" }));
+    .catch((error) => res.status(500).json({ message: error }));
 };
 
 exports.bestRatings = (req, res, next) => {
@@ -64,22 +63,15 @@ exports.bestRatings = (req, res, next) => {
     .sort({ averageRating: -1 })
     .limit(3)
     .then((bestRatingBooks) => res.status(200).json(bestRatingBooks))
-    .catch(() => res.status(500).json({ error: "error" }));
+    .catch((error) => res.status(500).json({ message: error }));
 };
 
 exports.updateBook = (req, res, next) => {
-  if (req.file.size > 500000) {
-    return res
-      .status(401)
-      .json({ message: "L'image ne doit pas dépasser 500 Ko" });
-  }
-
   sharp(req.file.path)
     .resize({ width: 412, height: 520, fit: sharp.fit.contain })
     .toFormat("jpeg", { mozjpeg: true })
     .toFile("images/resized_" + req.file.filename, (err, info) => {
       if (err) {
-        // Handle the error
         return console.log(err);
       }
     });
@@ -105,16 +97,16 @@ exports.updateBook = (req, res, next) => {
           { ...bookOject, _id: req.params.id }
         )
           .then(() => res.status(200).json({ message: "Livre mis à jour" }))
-          .catch((error) => res.status(401).json({ error }));
+          .catch((error) => res.status(401).json({ message: error }));
       }
     })
-    .catch((error) => res.status(400).json({ error }));
+    .catch((error) => res.status(400).json({ message: error }));
 };
 
 exports.deleteBook = (req, res, next) => {
   Book.deleteOne({ _id: req.params.id })
     .then(() => res.status(200).json({ message: "Livre supprimé !" }))
-    .catch((error) => res.status(400).json({ error }));
+    .catch((error) => res.status(400).json({ message: error }));
 };
 
 exports.rateBook = (req, res, next) => {
@@ -139,7 +131,7 @@ exports.rateBook = (req, res, next) => {
         }
       });
     })
-    .catch((error) => res.status(500).json({ error }));
+    .catch((error) => res.status(500).json({ message: error }));
 
   // Update the book with the new rating
   Book.updateOne(
@@ -165,15 +157,15 @@ exports.rateBook = (req, res, next) => {
             { $set: { averageRating: newAverage } }
           )
             .then(console.log("Book ratings updated"))
-            .catch((error) => res.status(500).json({ error }));
+            .catch((error) => res.status(500).json({ message: error }));
 
           //Send the response as the new updated book
           Book.findOne({ _id: currentBookId })
             .then((book) => res.status(200).json(book))
-            .catch((error) => res.status(500).json({ error }));
+            .catch((error) => res.status(500).json({ message: error }));
         })
-        .catch((error) => res.status(500).json({ error }));
+        .catch((error) => res.status(500).json({ message: error }));
     })
 
-    .catch((error) => res.status(500).json({ error }));
+    .catch((error) => res.status(500).json({ message: error }));
 };

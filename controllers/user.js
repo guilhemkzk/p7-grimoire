@@ -5,9 +5,9 @@ const jwt = require("jsonwebtoken");
 const validator = require("validator");
 
 exports.signup = (req, res, next) => {
-  if (User.findOne({ email: req.body.email })) {
-    return res.status(401).json({ message: "Utilisateur déjà enregistré" });
-  }
+  // if (User.findOne({ email: req.body.email })) {
+  //   return res.status(401).json({ message: "Utilisateur déjà enregistré" });
+  // }
 
   if (!validator.isEmail(req.body.email)) {
     res.status(401).json({ message: "Format email invalide" });
@@ -32,9 +32,13 @@ exports.signup = (req, res, next) => {
       newUser
         .save()
         .then(() => res.status(201).json({ message: "Utilisateur enregistré" }))
-        .catch((error) => res.status(400).json({ error }));
+        .catch(() =>
+          res
+            .status(400)
+            .json({ message: "Utilisateur non valide ou déjà existant" })
+        );
     })
-    .catch((error) => res.status(500).json({ error }));
+    .catch((error) => res.status(500).json({ message: error }));
 };
 
 exports.login = (req, res, next) => {
@@ -63,7 +67,7 @@ exports.login = (req, res, next) => {
             token: token,
           });
         })
-        .catch((error) => res.status(500).json({ error }));
+        .catch((error) => res.status(500).json({ message: error }));
     })
-    .catch((error) => res.status(500).json({ error }));
+    .catch((error) => res.status(500).json({ message: error }));
 };

@@ -6,9 +6,7 @@ const MIME_TYPES = {
   "image/png": "png",
 };
 
-function gcd(a, b) {
-  return b == 0 ? a : gcd(b, a % b);
-}
+const maxSize = 500000;
 
 const storage = multer.diskStorage({
   destination: (req, file, callback) => {
@@ -22,4 +20,7 @@ const storage = multer.diskStorage({
   },
 });
 
-module.exports = multer({ storage }).single("image");
+module.exports = multer({
+  storage: storage,
+  limits: { fileSize: maxSize },
+}).single("image");
