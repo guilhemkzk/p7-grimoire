@@ -19,7 +19,7 @@ exports.createBook = (req, res, next) => {
   sharp(req.file.path)
     .resize({ width: 412, height: 520, fit: sharp.fit.contain })
     .toFormat("jpeg", { mozjpeg: true })
-    .toFile("images/resized_" + req.file.filename, (err, info) => {
+    .toFile("images/resized/resized_" + req.file.filename, (err, info) => {
       if (err) {
         return console.log(err);
       }
@@ -31,7 +31,7 @@ exports.createBook = (req, res, next) => {
   const book = new Book({
     ...bookObject,
     userId: req.auth.userId,
-    imageUrl: `${req.protocol}://${req.get("host")}/images/resized_${
+    imageUrl: `${req.protocol}://${req.get("host")}/images/resized/resized_${
       req.file.filename
     }`,
   });

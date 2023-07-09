@@ -10,7 +10,7 @@ const maxSize = 500000;
 
 const storage = multer.diskStorage({
   destination: (req, file, callback) => {
-    callback(null, "images");
+    callback(null, "images/originals");
   },
   filename: (req, file, callback) => {
     const name = file.originalname.split(" ").join("_").split(".")[0];

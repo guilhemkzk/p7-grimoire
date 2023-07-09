@@ -9,10 +9,10 @@ exports.signup = (req, res, next) => {
   //   return res.status(401).json({ message: "Utilisateur déjà enregistré" });
   // }
 
-  if (!validator.isEmail(req.body.email)) {
-    res.status(401).json({ message: "Format email invalide" });
-    return;
-  }
+  // if (!validator.isEmail(req.body.email)) {
+  //   res.status(401).json({ message: "Format email invalide" });
+  //   return;
+  // }
 
   if (!validator.isStrongPassword(req.body.password)) {
     res.status(401).json({
@@ -32,10 +32,8 @@ exports.signup = (req, res, next) => {
       newUser
         .save()
         .then(() => res.status(201).json({ message: "Utilisateur enregistré" }))
-        .catch(() =>
-          res
-            .status(400)
-            .json({ message: "Utilisateur non valide ou déjà existant" })
+        .catch((err) =>
+          res.status(400).json({ message: err.errors.email.message })
         );
     })
     .catch((error) => res.status(500).json({ message: error }));
