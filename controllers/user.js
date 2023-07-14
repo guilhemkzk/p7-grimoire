@@ -14,8 +14,14 @@ exports.signup = (req, res, next) => {
   //   return;
   // }
 
+  if (req.body.password.trim().lenght !== req.body.password.lenght) {
+    res.status(400).json({
+      message: "Le mot de passe ne doit pas comporter d'espaces",
+    });
+  }
+
   if (!validator.isStrongPassword(req.body.password)) {
-    res.status(401).json({
+    res.status(400).json({
       message:
         "Le mot de passe doit faire au moins 8 caractères et comporter au moins : 1 minuscule, 1 majuscule, 1 chiffre et 1 caractère spécial",
     });

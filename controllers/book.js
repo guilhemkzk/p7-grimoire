@@ -10,11 +10,9 @@ exports.createBook = (req, res, next) => {
     }
   });
 
-  // if (req.file.size > 500000) {
-  //   return res
-  //     .status(401)
-  //     .json({ message: "L'image ne doit pas dépasser 500 Ko" });
-  // }
+  if (!req.file) {
+    return console.log("File not found");
+  }
 
   sharp(req.file.path)
     .resize({ width: 412, height: 520, fit: sharp.fit.contain })
@@ -67,21 +65,23 @@ exports.bestRatings = (req, res, next) => {
 };
 
 exports.updateBook = (req, res, next) => {
-  sharp(req.file.path)
-    .resize({ width: 412, height: 520, fit: sharp.fit.contain })
-    .toFormat("jpeg", { mozjpeg: true })
-    .toFile("images/resized_" + req.file.filename, (err, info) => {
-      if (err) {
-        return console.log(err);
-      }
-    });
+  if (req.file) {
+    sharp(req.file.path)
+      .resize({ width: 412, height: 520, fit: sharp.fit.contain })
+      .toFormat("jpeg", { mozjpeg: true })
+      .toFile("images/resized/resized_" + req.file.filename, (err, info) => {
+        if (err) {
+          return console.log(err);
+        }
+      });
+  }
 
   const bookOject = req.file
     ? {
         ...JSON.parse(req.body.book),
-        imageUrl: `${req.protocol}://${req.get("host")}/images/resized_${
-          req.file.filename
-        }`,
+        imageUrl: `${req.protocol}://${req.get(
+          "host"
+        )}/images/resized/resized_${req.file.filename}`,
       }
     : { ...req.body };
 

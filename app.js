@@ -1,27 +1,20 @@
 const express = require("express");
-// const bb = require("express-busboy");
 const path = require("path");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const bookRoutes = require("./routes/book");
 const userRoutes = require("./routes/user");
-
-const app = express();
-
-// bb.extend(app, {
-//   upload: true,
-//   path: "images/",
-//   allowedPath: /./,
-// });
-
-// Allow all request's origins
 var cors = require("cors");
+
+// Set up express
+const app = express();
 
 // Set up Global configuration access
 dotenv.config();
 app.use(express.json());
-app.use(cors()); // Use this after the variable declaration
+app.use(cors());
 
+//Connect to the MongoDB database
 mongoose
   .connect(
     `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@project0.huvo8yv.mongodb.net/test?retryWrites=true&w=majority`,
@@ -44,7 +37,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// ---------------------------- Endpoints and routes  -----------------------------
+// Set endpoints and routes
 
 app.use("/api/books", bookRoutes);
 app.use("/api/auth", userRoutes);

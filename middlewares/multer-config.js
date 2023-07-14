@@ -6,7 +6,7 @@ const MIME_TYPES = {
   "image/png": "png",
 };
 
-const maxSize = 500000;
+const maxSize = 500000; // Limit size 500Ko
 
 const storage = multer.diskStorage({
   destination: (req, file, callback) => {
