@@ -19,6 +19,8 @@ const userSchema = mongoose.Schema({
   },
 });
 
-userSchema.plugin(uniqueValidator);
+userSchema.plugin(uniqueValidator, {
+  message: "L'adresse mail doit être unique",
+});
 
 module.exports = mongoose.model("User", userSchema);

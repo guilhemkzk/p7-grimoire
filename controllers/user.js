@@ -5,10 +5,6 @@ const jwt = require("jsonwebtoken");
 const validator = require("validator");
 
 exports.signup = (req, res, next) => {
-  // if (User.findOne({ email: req.body.email })) {
-  //   return res.status(401).json({ message: "Utilisateur déjà enregistré" });
-  // }
-
   if (req.body.password.trim() !== req.body.password) {
     res.status(400).json({
       message: "Le mot de passe ne doit pas comporter d'espaces",

@@ -10,14 +10,17 @@ exports.createBook = (req, res, next) => {
     }
   });
 
-  if (!req.file) {
-    return console.log("File not found");
+  if (!req.file || !req.body) {
+    console.log("Request incomplete");
+    return;
   }
+
+  const nameWebp = req.file.filename.split(".")[0] + ".webp";
 
   sharp(req.file.path)
     .resize({ width: 412, height: 520, fit: sharp.fit.contain })
-    .toFormat("jpeg", { mozjpeg: true })
-    .toFile("images/resized/resized_" + req.file.filename, (err, info) => {
+    .webp({ quality: 20 })
+    .toFile("images/resized/" + nameWebp, (err, info) => {
       if (err) {
         return console.log(err);
       }
@@ -29,9 +32,7 @@ exports.createBook = (req, res, next) => {
   const book = new Book({
     ...bookObject,
     userId: req.auth.userId,
-    imageUrl: `${req.protocol}://${req.get("host")}/images/resized/resized_${
-      req.file.filename
-    }`,
+    imageUrl: `${req.protocol}://${req.get("host")}/images/resized/${nameWebp}`,
   });
 
   book
@@ -66,10 +67,12 @@ exports.bestRatings = (req, res, next) => {
 
 exports.updateBook = (req, res, next) => {
   if (req.file) {
+    let nameWebp = req.file.filename.split(".")[0] + ".webp";
+
     sharp(req.file.path)
       .resize({ width: 412, height: 520, fit: sharp.fit.contain })
-      .toFormat("jpeg", { mozjpeg: true })
-      .toFile("images/resized/resized_" + req.file.filename, (err, info) => {
+      .webp({ quality: 20 })
+      .toFile("images/resized/" + nameWebp, (err, info) => {
         if (err) {
           return console.log(err);
         }
@@ -79,9 +82,9 @@ exports.updateBook = (req, res, next) => {
   const bookOject = req.file
     ? {
         ...JSON.parse(req.body.book),
-        imageUrl: `${req.protocol}://${req.get(
-          "host"
-        )}/images/resized/resized_${req.file.filename}`,
+        imageUrl: `${req.protocol}://${req.get("host")}/images/resized/${
+          req.file.filename.split(".")[0]
+        }.webp`,
       }
     : { ...req.body };
 
@@ -133,7 +136,6 @@ exports.rateBook = (req, res, next) => {
     })
     .catch((error) => res.status(500).json({ message: error }));
 
-  // Update the book with the new rating
   Book.updateOne(
     { _id: currentBookId },
     {
