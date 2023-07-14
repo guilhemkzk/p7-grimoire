@@ -40,14 +40,14 @@ exports.createBook = (req, res, next) => {
       res.status(201).json({ message: "Livre enregistré" });
     })
     .catch((error) => {
-      res.status(400).json({ message: error });
+      res.status(500).json({ message: error });
     });
 };
 
 exports.getAllBooks = (req, res, next) => {
   Book.find()
     .then((books) => res.status(200).json(books))
-    .catch((error) => res.status(400).json({ message: error }));
+    .catch((error) => res.status(500).json({ message: error }));
 };
 
 exports.getOneBook = (req, res, next) => {
@@ -97,16 +97,16 @@ exports.updateBook = (req, res, next) => {
           { ...bookOject, _id: req.params.id }
         )
           .then(() => res.status(200).json({ message: "Livre mis à jour" }))
-          .catch((error) => res.status(401).json({ message: error }));
+          .catch((error) => res.status(500).json({ message: error }));
       }
     })
-    .catch((error) => res.status(400).json({ message: error }));
+    .catch((error) => res.status(500).json({ message: error }));
 };
 
 exports.deleteBook = (req, res, next) => {
   Book.deleteOne({ _id: req.params.id })
     .then(() => res.status(200).json({ message: "Livre supprimé !" }))
-    .catch((error) => res.status(400).json({ message: error }));
+    .catch((error) => res.status(500).json({ message: error }));
 };
 
 exports.rateBook = (req, res, next) => {

@@ -9,15 +9,11 @@ exports.signup = (req, res, next) => {
   //   return res.status(401).json({ message: "Utilisateur déjà enregistré" });
   // }
 
-  // if (!validator.isEmail(req.body.email)) {
-  //   res.status(401).json({ message: "Format email invalide" });
-  //   return;
-  // }
-
-  if (req.body.password.trim().lenght !== req.body.password.lenght) {
+  if (req.body.password.trim() !== req.body.password) {
     res.status(400).json({
       message: "Le mot de passe ne doit pas comporter d'espaces",
     });
+    return;
   }
 
   if (!validator.isStrongPassword(req.body.password)) {
