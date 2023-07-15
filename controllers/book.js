@@ -19,7 +19,7 @@ exports.createBook = (req, res, next) => {
 
   sharp(req.file.path)
     .resize({ width: 412, height: 520, fit: sharp.fit.contain })
-    .webp({ quality: 20 })
+    .webp({ quality: 50 })
     .toFile("images/resized/" + nameWebp, (err, info) => {
       if (err) {
         return console.log(err);
@@ -93,7 +93,8 @@ exports.updateBook = (req, res, next) => {
   Book.findOne({ _id: req.params.id })
     .then((book) => {
       if (book.userId != req.auth.userId) {
-        res.status(401).json({ message: "Non autorisé" });
+        console.log("Action denied");
+        return;
       } else {
         Book.updateOne(
           { _id: req.params.id },

@@ -28,7 +28,8 @@ function uploadFile(req, res, next) {
 
   upload(req, res, function (err) {
     if (err instanceof multer.MulterError) {
-      res.status(400).json({ message: err.message });
+      res.status(401).json({ message: "Fichier trop lourd" });
+      return;
       // A Multer error occurred when uploading.
     }
     next();
