@@ -20,20 +20,7 @@ const storage = multer.diskStorage({
   },
 });
 
-function uploadFile(req, res, next) {
-  const upload = multer({
-    storage: storage,
-    limits: { fileSize: maxSize },
-  }).single("image");
-
-  upload(req, res, function (err) {
-    if (err instanceof multer.MulterError) {
-      res.status(401).json({ message: "Fichier trop lourd" });
-      return;
-      // A Multer error occurred when uploading.
-    }
-    next();
-  });
-}
-
-module.exports = uploadFile;
+module.exports = multer({
+  storage: storage,
+  limits: { fileSize: maxSize },
+}).single("image");

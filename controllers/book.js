@@ -15,6 +15,12 @@ exports.createBook = (req, res, next) => {
     return;
   }
 
+  if (req.file.size > 500000) {
+    return res
+      .status(400)
+      .json({ message: "L'image ne doit pas dépasser 500 Ko" });
+  }
+
   const nameWebp = req.file.filename.split(".")[0] + ".webp";
 
   sharp(req.file.path)
