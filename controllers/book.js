@@ -77,7 +77,7 @@ exports.updateBook = (req, res, next) => {
 
     sharp(req.file.path)
       .resize({ width: 412, height: 520, fit: sharp.fit.contain })
-      .webp({ quality: 20 })
+      .webp({ quality: 50 })
       .toFile("images/resized/" + nameWebp, (err, info) => {
         if (err) {
           return console.log(err);
